@@ -1,0 +1,153 @@
+<?php
+include '../components/connect.php';
+
+session_start();
+
+
+if(isset($_POST['submit'])){
+    $name = $_POST['name'];
+    $name = filter_var($name, FILTER_SANITIZE_STRING);
+    $pass = sha1($_POST['pass']);
+    $pass = filter_var($pass, FILTER_SANITIZE_STRING);
+    $cpass = sha1($_POST['cpass']);
+    $cpass = filter_var($cpass, FILTER_SANITIZE_STRING);
+
+    $select_seller = $conn->prepare("SELECT * FROM `sellers` WHERE name = ?");
+    $select_seller->execute([$name]);
+
+    if($select_seller->rowCount() > 0){
+        $message[] = 'nama sudah ada sebelumnya!';
+    }else{
+        if($pass != $cpass){
+            $message[] = 'konfirmasi kata sandi tidak cocok!';
+        }else{
+            $insert_seller = $conn->prepare("INSERT INTO `sellers`(name, password) VALUES(?,?)");
+            $insert_seller->execute([$name, $cpass]);
+            $message[] = 'akun baru seller berhasil terdaftar!';
+        }
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <title>Seller Register</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+        :root {
+            --hijau: #379777;
+            --hijau_gelap: #31876b;
+            --kuning: #f4ce14;
+            --kuning_gelap: #e2be0a;
+            --hitam: #45474b;
+            --putih: #f5f7f8;
+            --putih_gelap: #d8dfe3;
+            --merah: #ee4e4e;
+        }
+
+        * {
+            font-family: "Montserrat", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        section{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        form{
+            width: 40%;
+            padding: 30px;
+            background-color: var(--putih);
+            color: var(--hitam);
+        }
+
+        form h3{
+            font-size: 20px;
+        }
+
+        .input_wrap{
+            display: flex;
+            flex-direction: column;
+            row-gap: 8px;
+            margin: 20px 0;
+        }
+
+        .kolom_nama, .kolom_pass, .kolom_cpass{
+            padding: 8px 10px;
+            background-color: var(--putih_gelap);
+            border: none;
+        }
+
+        input[type=submit]{
+            width: 100%;
+            padding: 12px 0;
+            border: none;
+            background-color: var(--hijau);
+            color: var(--putih);
+            cursor: pointer;
+        }
+
+        input[type=submit]:hover{
+            background-color: var(--hijau_gelap);
+            transition: 0.3s;
+        }
+
+        .message{
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .message span{
+            margin-left: 10px;
+        }
+
+        .message i{
+            cursor: pointer;
+        }
+
+        .message i:hover{
+            color: var(--merah);
+        }
+    </style>
+</head>
+<body>
+    <?php
+        if(isset($message)){
+            foreach($message as $message){
+                echo '
+                <div class="message">
+                    <span>'.$message.'</span>
+                    <i class="fas fa-times" onclick="this.parentElement.remove();"></i>
+                </div>
+                ';
+            }
+        }
+    ?>
+    <section>
+        <form action="" method="POST">
+            <h3>Seller Register</h3>
+            <div class="input_wrap">
+                <label for="name">Nama</label>
+                <input type="text" id="name" name="name" class="kolom_nama" maxlength="20" oninput="this.value = this.value.replace(/\s/g, '')"/>
+            </div>
+            <div class="input_wrap">
+                <label for="pass">Kata Sandi</label>
+                <input type="password" id="pass" name="pass" class="kolom_pass" maxlength="20" oninput="this.value = this.value.replace(/\s/g, '')"/>
+            </div>
+            <div class="input_wrap">
+                <label for="cpass">Konfirmasi Kata Sandi</label>
+                <input type="password" id="cpass" name="cpass" class="kolom_cpass" maxlength="20" oninput="this.value = this.value.replace(/\s/g, '')"/>
+            </div>
+            <input type="submit" name="submit" value="Daftar">
+        </form>
+    </section>
+</body>
+</html>
